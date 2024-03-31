@@ -42,12 +42,6 @@
     regexp: '{{ current_secure_port_result }}'
     replace: '{{ microk8s_config_api_server_secure_port }}'
 
-- name: Replace current secure port {{ current_secure_port_result }} to {{ microk8s_config_api_server_secure_port }} on kube config
-  replace:
-    path: "~/.kube/config "
-    regexp: '{{ current_secure_port_result }}'
-    replace: '{{ microk8s_config_api_server_secure_port }}'
-
 - name: Create overrides dir
   become: true
   ansible.builtin.file:
