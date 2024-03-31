@@ -18,7 +18,8 @@
     replace: '--secure-port={{ microk8s_config_api_server_secure_port }}'
   when: microk8s_config_api_server_secure_port is defined
 
-- name: Replace current secure port {{ current_secure_port_result }} to {{ microk8s_config_api_server_secure_port }} in all files
+- name: Replace current secure port to {{ microk8s_config_api_server_secure_port }} in all files
+  become: true
   replace:
     path: "{{ item.path }}"
     regexp: '{{ current_secure_port_result }}'
@@ -63,18 +64,21 @@
   command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
 
 - name: Replace current server port in client config
+  become: true
   replace:
     path: "/var/snap/microk8s/current/config_overrides/client.config"
     regexp: '{{ current_secure_port_result }}'
     replace: '{{ microk8s_config_api_server_secure_port }}'
 
 - name: Replace current server port in kubelet config
+  become: true
   replace:
     path: "/var/snap/microk8s/current/config_overrides/kubelet.config"
     regexp: '{{ current_secure_port_result }}'
     replace: '{{ microk8s_config_api_server_secure_port }}'
   
 - name: Replace path to client config for all files
+  become: true
   replace:
     path: "{{ item.path }}"
     regexp: '$SNAP_DATA/credentials/client.config'
@@ -82,6 +86,7 @@
   with_items: "{{ args.files }}"
 
 - name: Replace path to kubelet config for all files
+  become: true
   replace:
     path: "{{ item.path }}"
     regexp: '$SNAP_DATA/credentials/kubelet.config'
