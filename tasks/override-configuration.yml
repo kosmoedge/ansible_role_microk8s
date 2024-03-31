@@ -54,7 +54,9 @@
   ansible.builtin.copy:
     src: /var/snap/microk8s/current/credentials/
     dest: /var/snap/microk8s/current/config_overrides/
-
+    owner: root
+    group: microk8s
+    mode: u=rwx,g=rx
 
 - name: Find all files in the current config_overrides dir
   ansible.builtin.find:
@@ -69,13 +71,6 @@
     regexp: '{{ current_secure_port_result }}'
     replace: '{{ microk8s_config_api_server_secure_port }}'
   with_items: "{{ config_overrides.files }}"
-
-- name: Replace current server port in all config files
-  become: true
-  replace:
-    path: "/var/snap/microk8s/current/config_overrides/client.config"
-    regexp: '{{ current_secure_port_result }}'
-    replace: '{{ microk8s_config_api_server_secure_port }}'
   
 - name: Replace path to configs for all files
   become: true
