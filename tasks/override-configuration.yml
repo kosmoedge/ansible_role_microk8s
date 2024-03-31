@@ -64,7 +64,7 @@
     recurse: true
   register: config_overrides
 
-- name: Replace current secure port to {{ microk8s_config_api_server_secure_port }} in all files
+- name: Replace current secure port {{ current_secure_port_result }} to {{ microk8s_config_api_server_secure_port }} in all files
   become: true
   replace:
     path: "{{ item.path }}"
@@ -83,7 +83,7 @@
 
 - name: Disable microk8s
   become: true
-  snap:
+  community.general.snap:
     name: microk8s
     classic: yes
     channel: "{{ microk8s_version }}"
@@ -91,7 +91,7 @@
 
 - name: Enable microk8s
   become: true
-  snap:
+  community.general.snap:
     name: microk8s
     classic: yes
     channel: "{{ microk8s_version }}"
