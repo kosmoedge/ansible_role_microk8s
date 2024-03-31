@@ -33,7 +33,7 @@
 
 - name: Create config if not exists
   become: true
-  ansible.builtin.command: /snap/bin/microk8s.config -l > ~/.kube/config 
+  command: /snap/bin/microk8s.config -l > ~/.kube/config 
 
 - name: Replace current server port in kube config file
   replace:
@@ -56,11 +56,11 @@
 
 - name: Create new client.config file in config overrides
   become: true
-  ansible.builtin.command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
+  command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
 
 - name: Create new kubelet.config file in config overrides
   become: true
-  ansible.builtin.command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
+  command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
 
 - name: Replace current server port in client config
   replace:
