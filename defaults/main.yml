@@ -64,3 +64,13 @@ add_workers_to_hostfile: false
 
 # for setting up custom certificate request.  Set to template name to enable
 #microk8s_csr_template: null
+
+# option to allow microk8s configuration to be overriden
+allow_override_default_configuration: false
+
+# uncomment bellow settings or add them in your defaults
+# set different api server secure port than default
+#microk8s_config_api_server_secure_port: 6443
+
+# set different api server insecure port than default
+#microk8s_config_api_server_insecure_port: 8080

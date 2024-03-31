@@ -1,0 +1,105 @@
+- name: Find all files in the current args dir
+  ansible.builtin.find:
+    paths: "/var/snap/microk8s/current/args/"
+    recurse: true
+  register: args
+  
+- name: Read current secure port
+  ansible.builtin.set_fact:
+    current_secure_port: "{{ lookup('file', '/var/snap/microk8s/current/args/kube-apiserver') | regex_search('^--secure-port=([0-9]+)') }}"
+  register: current_secure_port_result
+  ignore_errors: true
+  
+- name: Change API server secure port to {{ microk8s_config_api_server_secure_port }}
+  become: true
+  ansible.builtin.replace:
+    path: /var/snap/microk8s/current/args/kube-apiserver
+    regexp: '--secure-port=\d+'
+    replace: '--secure-port={{ microk8s_config_api_server_secure_port }}'
+  when: microk8s_config_api_server_secure_port is defined
+
+- name: Replace current secure port {{ current_secure_port_result }} to {{ microk8s_config_api_server_secure_port }} in all files
+  replace:
+    path: "{{ item.path }}"
+    regexp: '{{ current_secure_port_result }}'
+    replace: '{{ microk8s_config_api_server_secure_port }}'
+  with_items: "{{ args.files }}"
+
+- name: Create ~/.kube dir if not exists
+  ansible.builtin.file:
+    path: ~/.kube
+    state: directory
+    mode: '0750'
+
+- name: Create config if not exists
+  become: true
+  ansible.builtin.command: /snap/bin/microk8s.config -l > ~/.kube/config 
+
+- name: Replace current server port in kube config file
+  replace:
+    path: "~/.kube/config"
+    regexp: '{{ current_secure_port_result }}'
+    replace: '{{ microk8s_config_api_server_secure_port }}'
+
+- name: Replace current secure port {{ current_secure_port_result }} to {{ microk8s_config_api_server_secure_port }} on kube config
+  replace:
+    path: "~/.kube/config "
+    regexp: '{{ current_secure_port_result }}'
+    replace: '{{ microk8s_config_api_server_secure_port }}'
+
+- name: Create overrides dir
+  become: true
+  ansible.builtin.file:
+    path: /var/snap/microk8s/current/config_overrides
+    state: directory
+    mode: '0777'
+
+- name: Create new client.config file in config overrides
+  become: true
+  ansible.builtin.command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
+
+- name: Create new kubelet.config file in config overrides
+  become: true
+  ansible.builtin.command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
+
+- name: Replace current server port in client config
+  replace:
+    path: "/var/snap/microk8s/current/config_overrides/client.config"
+    regexp: '{{ current_secure_port_result }}'
+    replace: '{{ microk8s_config_api_server_secure_port }}'
+
+- name: Replace current server port in kubelet config
+  replace:
+    path: "/var/snap/microk8s/current/config_overrides/kubelet.config"
+    regexp: '{{ current_secure_port_result }}'
+    replace: '{{ microk8s_config_api_server_secure_port }}'
+  
+- name: Replace path to client config for all files
+  replace:
+    path: "{{ item.path }}"
+    regexp: '$SNAP_DATA/credentials/client.config'
+    replace: '$SNAP_DATA/config_overrides/client.config'
+  with_items: "{{ args.files }}"
+
+- name: Replace path to kubelet config for all files
+  replace:
+    path: "{{ item.path }}"
+    regexp: '$SNAP_DATA/credentials/kubelet.config'
+    replace: '$SNAP_DATA/config_overrides/kubelet.config'
+  with_items: "{{ args.files }}"
+
+- name: Disable microk8s
+  become: true
+  snap:
+    name: microk8s
+    classic: yes
+    channel: "{{ microk8s_version }}"
+    state: disabled
+
+- name: Enable microk8s
+  become: true
+  snap:
+    name: microk8s
+    classic: yes
+    channel: "{{ microk8s_version }}"
+    state: enabled
