@@ -6,7 +6,7 @@
   
 - name: Read current secure port
   ansible.builtin.set_fact:
-    current_secure_port: "{{ lookup('file', '/var/snap/microk8s/current/args/kube-apiserver') | regex_search('^--secure-port=([0-9]+)') }}"
+    current_secure_port: 16443 #"{{ lookup('file', '/var/snap/microk8s/current/args/kube-apiserver') | regex_search('^--secure-port=([0-9]+)') }}"
   register: current_secure_port_result
   ignore_errors: true
   
@@ -49,43 +49,42 @@
     state: directory
     mode: '0777'
 
-- name: Create new client.config file in config overrides
+- name: Copy content from credentials dir to config_ovrrides
   become: true
-  command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
+  ansible.builtin.copy:
+    src: /var/snap/microk8s/current/credentials/
+    dest: /var/snap/microk8s/current/config_overrides/
 
-- name: Create new kubelet.config file in config overrides
+
+- name: Find all files in the current config_overrides dir
+  ansible.builtin.find:
+    paths: "/var/snap/microk8s/current/config_overrides/"
+    recurse: true
+  register: config_overrides
+
+- name: Replace current secure port to {{ microk8s_config_api_server_secure_port }} in all files
   become: true
-  command: /snap/bin/microk8s.config -l > /var/snap/microk8s/current/config_overrides/client.config 
+  replace:
+    path: "{{ item.path }}"
+    regexp: '{{ current_secure_port_result }}'
+    replace: '{{ microk8s_config_api_server_secure_port }}'
+  with_items: "{{ config_overrides.files }}"
 
-- name: Replace current server port in client config
+- name: Replace current server port in all config files
   become: true
   replace:
     path: "/var/snap/microk8s/current/config_overrides/client.config"
     regexp: '{{ current_secure_port_result }}'
     replace: '{{ microk8s_config_api_server_secure_port }}'
-
-- name: Replace current server port in kubelet config
-  become: true
-  replace:
-    path: "/var/snap/microk8s/current/config_overrides/kubelet.config"
-    regexp: '{{ current_secure_port_result }}'
-    replace: '{{ microk8s_config_api_server_secure_port }}'
   
-- name: Replace path to client config for all files
+- name: Replace path to configs for all files
   become: true
   replace:
     path: "{{ item.path }}"
-    regexp: '$SNAP_DATA/credentials/client.config'
-    replace: '$SNAP_DATA/config_overrides/client.config'
+    regexp: '$SNAP_DATA/credentials/'
+    replace: '$SNAP_DATA/config_overrides/'
   with_items: "{{ args.files }}"
 
-- name: Replace path to kubelet config for all files
-  become: true
-  replace:
-    path: "{{ item.path }}"
-    regexp: '$SNAP_DATA/credentials/kubelet.config'
-    replace: '$SNAP_DATA/config_overrides/kubelet.config'
-  with_items: "{{ args.files }}"
 
 - name: Disable microk8s
   become: true
