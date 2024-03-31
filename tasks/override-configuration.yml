@@ -83,16 +83,8 @@
 
 - name: Disable microk8s
   become: true
-  community.general.snap:
-    name: microk8s
-    classic: yes
-    channel: "{{ microk8s_version }}"
-    state: disabled
+  command: snap disable microk8s
 
 - name: Enable microk8s
   become: true
-  community.general.snap:
-    name: microk8s
-    classic: yes
-    channel: "{{ microk8s_version }}"
-    state: enabled
+  command: snap enable microk8s
