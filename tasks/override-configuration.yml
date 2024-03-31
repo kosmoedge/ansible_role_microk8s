@@ -47,7 +47,7 @@
   ansible.builtin.file:
     path: /var/snap/microk8s/current/config_overrides
     state: directory
-    mode: '0777'
+    mode: '0770'
 
 - name: Copy content from credentials dir to config_ovrrides
   become: true
@@ -56,7 +56,6 @@
     dest: /var/snap/microk8s/current/config_overrides/
     owner: root
     group: microk8s
-    mode: u=rwx,g=rx
 
 - name: Find all files in the current config_overrides dir
   ansible.builtin.find:
