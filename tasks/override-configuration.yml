@@ -45,7 +45,7 @@
 
 - name: Copy content from credentials dir to config_ovrrides
   become: true
-  command: cp -r /var/snap/microk8s/current/credentials/ /var/snap/microk8s/current/config_overrides/
+  command: cp -a /var/snap/microk8s/current/credentials/. /var/snap/microk8s/current/config_overrides/
 
 - name: Find all files in the current config_overrides dir
   ansible.builtin.find:
