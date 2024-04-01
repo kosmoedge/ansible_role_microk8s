@@ -65,8 +65,8 @@
   become: true
   replace:
     path: "{{ item.path }}"
-    regexp: '${SNAP_DATA}/credentials/'
-    replace: '${SNAP_DATA}/config_overrides/'
+    regexp: '/credentials/'
+    replace: '/config_overrides/'
   with_items: "{{ args.files }}"
 
 
