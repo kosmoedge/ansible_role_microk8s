@@ -1,9 +1,9 @@
 ---
 - import_tasks: install.yml
 
-# - name: change default configs
-#   include_tasks: override-configuration.yml
-#   when: "allow_override_default_configuration"
+- name: change default configs
+  include_tasks: override-configuration.yml
+  when: "allow_override_default_configuration"
   
 - name: configure users
   include_tasks: configure-groups.yml
